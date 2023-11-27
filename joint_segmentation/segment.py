@@ -9,13 +9,19 @@ from skimage import segmentation
 
 def test():
     """Test function to show image"""
-    test_img = pyplot.imread('test_data/image (1).png')
+    test_img = pyplot.imread('test_data/image (2).png')
     gray_img = cv2.cvtColor(test_img, cv2.COLOR_BGR2GRAY)
     pyplot.imshow(gray_img)
     pyplot.show()
 
 
 def split_mask(mask):
+    """
+    Assigns corresponding region number to edge pixels for each solder region
+
+    :param mask:
+    :return:
+    """
     result = cv2.findContours(mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)[0]
 
     return_img = np.zeros(mask.shape)
@@ -30,33 +36,66 @@ def split_mask(mask):
 
     return return_img
 
-def square_mask(mask, boundary):
+def square_mask(mask, overscan, min_size):
+    """
+    Find square regions corresponding to contiguous segments within the image masks
+
+    The mask should describe the solder joint regions of the image
+    """
     result = cv2.findContours(mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)[0]
 
-    return_img = np.zeros(mask.shape)
-    crop_list = np.zeros(shape=(100, 4), dtype=int)
+    crop_list = []
+    rows, cols = mask.shape
 
-    counter = 0
     for region in result:
         pixels, blank1, blank2 = region.shape
-        if pixels > 25:
-            crop_list[counter][0] = int(min(region[:, :, 1])) - boundary
-            crop_list[counter][1] = int(max(region[:, :, 1])) + boundary
-            crop_list[counter][2] = int(min(region[:, :, 0])) - boundary
-            crop_list[counter][3] = int(max(region[:, :, 0])) + boundary
+        if pixels > min_size:
+            crop_elt = np.zeros(shape=(4), dtype=int)
 
-            # for row in range(crop_list[counter][0], crop_list[counter][1]):
-            #     for col in range(crop_list[counter][2], crop_list[counter][3]):
-            #         return_img[row][col] = counter
-            counter += 1
+            crop_elt[0] = max(int(min(region[:, :, 1])) - overscan, 0)
+            crop_elt[1] = min(int(max(region[:, :, 1])) + overscan, rows)
+            crop_elt[2] = max(int(min(region[:, :, 0])) - overscan, 0)
+            crop_elt[3] = min(int(max(region[:, :, 0])) + overscan, cols)
+
+            crop_list.append(crop_elt)
 
     return crop_list
-    return return_img
 
+def build_segment_array(image, seg_list):
+    """
+    Build an array of image segments for use by classification algorithm
+
+    These will always be square, and cover region to be segmented
+    """
+    seg_array = []
+
+    for elt in seg_list:
+        segment = image[elt[0]:elt[1], elt[2]:elt[3], :]
+        seg_array.append(segment)
+
+    return seg_array
+
+def gen_solder_mask(image, gray_floor=145, sat_max=40):
+    """
+    Generates solder mask image
+
+    :param image:
+    :return:
+    """
+
+    image_hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
+    light_gray = (0, 0, gray_floor)
+    dark_gray = (255, sat_max, 255)
+    mask = cv2.inRange(image_hsv, light_gray, dark_gray)
+
+    # remove stray pixels
+    mask = cv2.medianBlur(mask, 7)
+
+    return mask
 
 def demo():
     """Driver program to perform segmentation only"""
-    test_img = cv2.imread('test_data/image (1).png')
+    test_img = cv2.imread('test_data/image (2).png')
     #gray_img = cv2.cvtColor(test_img, cv2.COLOR_BGR2GRAY)
     #gray_img = cv2.GaussianBlur(gray_img, (7,7), 0)
     #pyplot.imshow(gray_img, cmap="gray")
@@ -79,11 +118,7 @@ def demo():
 
     """Sep segmentation"""
     test_img = cv2.GaussianBlur(test_img, (5,5), 0)
-    test_img_hsv = cv2.cvtColor(test_img, cv2.COLOR_BGR2HSV)
-    light_gray = (0, 0, 145)
-    dark_gray = (255, 40, 255)
-    mask = cv2.inRange(test_img_hsv, light_gray, dark_gray)
-    mask = cv2.medianBlur(mask, 7)
+    mask = gen_solder_mask(test_img)
     pyplot.imshow(mask, cmap="gray")
 
     res_img = test_img.shape
@@ -92,11 +127,22 @@ def demo():
 
     # need to find the centers of the objects
     #new_img = square_mask(mask)
-    list = square_mask(mask, 5)
+    list = square_mask(mask, 5, 60)
     #vis_image = skimage.color.label2rgb(super_test_img)
     #pyplot.imshow(new_img[0][])
-    sub = list[7]
-    pyplot.imshow(test_img[sub[0]:sub[1], sub[2]:sub[3], :])
+    segments = build_segment_array(test_img, list)
+
+    # show several examples
+    fig, ax = pyplot.subplots(2, 2)
+
+    ax[0][0].imshow(segments[0])
+    ax[0][1].imshow(segments[1])
+    ax[1][0].imshow(segments[2])
+    ax[1][1].imshow(segments[3])
 
     blank = 1
     blank += 1
+
+# ideas proportional overscan, as percentage
+# iterate through brightness, histogram method like OTSU
+# for alignment,
