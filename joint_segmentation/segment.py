@@ -52,10 +52,13 @@ def square_mask(mask, overscan, min_size):
         if pixels > min_size:
             crop_elt = np.zeros(shape=(4), dtype=int)
 
-            crop_elt[0] = max(int(min(region[:, :, 1])) - overscan, 0)
-            crop_elt[1] = min(int(max(region[:, :, 1])) + overscan, rows)
-            crop_elt[2] = max(int(min(region[:, :, 0])) - overscan, 0)
-            crop_elt[3] = min(int(max(region[:, :, 0])) + overscan, cols)
+            overscan_r = (overscan / 100) * (int(max(region[:, :, 1])) - int(min(region[:, :, 1])))
+            overscan_c = (overscan / 100) * (int(max(region[:, :, 0])) - int(min(region[:, :, 0])))
+
+            crop_elt[0] = max(int(min(region[:, :, 1])) - overscan_r, 0)
+            crop_elt[1] = min(int(max(region[:, :, 1])) + overscan_r, rows)
+            crop_elt[2] = max(int(min(region[:, :, 0])) - overscan_c, 0)
+            crop_elt[3] = min(int(max(region[:, :, 0])) + overscan_c, cols)
 
             crop_list.append(crop_elt)
 
@@ -127,7 +130,7 @@ def demo():
 
     # need to find the centers of the objects
     #new_img = square_mask(mask)
-    list = square_mask(mask, 5, 60)
+    list = square_mask(mask, 15, 60)
     #vis_image = skimage.color.label2rgb(super_test_img)
     #pyplot.imshow(new_img[0][])
     segments = build_segment_array(test_img, list)
@@ -143,6 +146,5 @@ def demo():
     blank = 1
     blank += 1
 
-# ideas proportional overscan, as percentage
 # iterate through brightness, histogram method like OTSU
 # for alignment,
