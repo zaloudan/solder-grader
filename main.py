@@ -3,13 +3,11 @@ import matplotlib.pyplot as pyplot
 
 import eigenvalue_classifier.train as train
 
+import joint_segmentation.segment as js
 
-# simple test for reading/viewing images
-test_img = pyplot.imread('training_data/excessive_solder/excessive (1).png')
-pyplot.imshow(test_img)
-pyplot.show()
 
-train.test()
-
+# test segmentation
+js.demo()
+#js.test()
 
 
