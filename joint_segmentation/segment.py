@@ -5,7 +5,8 @@ import numpy as np
 import skimage.color
 from skimage import segmentation
 
-
+# constants
+SAT_MAX = 40
 
 def test():
     """Test function to show image"""
@@ -88,7 +89,7 @@ def gen_solder_mask(image, gray_floor=145, sat_max=40):
 
     image_hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
     light_gray = (0, 0, gray_floor)
-    dark_gray = (255, sat_max, 255)
+    dark_gray = (255, sat_max, 240)
     mask = cv2.inRange(image_hsv, light_gray, dark_gray)
 
     # remove stray pixels
@@ -96,9 +97,43 @@ def gen_solder_mask(image, gray_floor=145, sat_max=40):
 
     return mask
 
+def auto_split_gray(image):
+    """
+    Find the gray value that segments the solder joints
+
+    Real images are distributed so that there is a threshold where the number
+    included begins to increase rapidly, from picking up random parts. Need
+    to find this gray-floor threshold
+
+    :returns (int) Threshold to segment the image
+    """
+
+    # find change in pixels for given gray floor
+    mask_arr = []
+    for gray_thr in range(0, 255):
+        mask = gen_solder_mask(image, gray_floor=gray_thr, sat_max=SAT_MAX)
+        mask_arr.append(mask)
+    y_values = np.zeros(shape=(254), dtype=int)
+    for i in range(0, 254):
+        y_values[i] = int(sum(sum(mask_arr[i]/255))) - int(sum(sum(mask_arr[i+1]/255)))
+
+    diff_y_values = np.diff(y_values)
+    filtered_values = np.convolve(diff_y_values, (np.ones(shape=9)/9), 'valid')
+
+    # find point just past peak, capture maximum solder joint area
+    max_val = max(max(filtered_values), abs(min(filtered_values)))
+    key_index = len(filtered_values) - 15
+    while(abs(filtered_values[key_index]) < 0.5 * max_val):
+        key_index -= 1
+    key_index += 15
+
+    return key_index
+
+
+
 def demo():
     """Driver program to perform segmentation only"""
-    test_img = cv2.imread('test_data/image (2).png')
+    test_img = cv2.imread('test_data/image (1).png')
     #gray_img = cv2.cvtColor(test_img, cv2.COLOR_BGR2GRAY)
     #gray_img = cv2.GaussianBlur(gray_img, (7,7), 0)
     #pyplot.imshow(gray_img, cmap="gray")
@@ -121,7 +156,7 @@ def demo():
 
     """Sep segmentation"""
     test_img = cv2.GaussianBlur(test_img, (5,5), 0)
-    mask = gen_solder_mask(test_img)
+    mask = gen_solder_mask(test_img, gray_floor=auto_split_gray(test_img))
     pyplot.imshow(mask, cmap="gray")
 
     res_img = test_img.shape
@@ -145,6 +180,7 @@ def demo():
 
     blank = 1
     blank += 1
+
 
 # iterate through brightness, histogram method like OTSU
 # for alignment,
