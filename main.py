@@ -7,7 +7,8 @@ import joint_segmentation.segment as js
 
 
 # test segmentation
-js.demo()
+#js.demo()
+train.preprocess()
 #js.test()
 
 
