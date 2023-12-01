@@ -149,9 +149,22 @@ def resize(img, bw=False):
         new_image = cv2.cvtColor(new_image, cv2.COLOR_BGR2GRAY)
     return skimage.transform.resize(new_image, (150,150))
 
-def demo():
+def format_locations(corners):
+    """ Format definition of segments"""
+    location = []
+    for corner in corners:
+        start = (corner[2], corner[0])
+        end = (corner[3], corner[1])
+        type = ""
+        entry = (list(start), list(end), type)
+        location.append(list(entry))
+
+    return location
+
+
+def demo(test_img):
     """Driver program to perform segmentation only"""
-    test_img = cv2.imread('test_data/image (1).png')
+
     #gray_img = cv2.cvtColor(test_img, cv2.COLOR_BGR2GRAY)
     #gray_img = cv2.GaussianBlur(gray_img, (7,7), 0)
     #pyplot.imshow(gray_img, cmap="gray")
@@ -186,11 +199,12 @@ def demo():
     list = square_mask(mask, 15, 60)
     #vis_image = skimage.color.label2rgb(super_test_img)
     #pyplot.imshow(new_img[0][])
+    locations = format_locations(list)
     segments = build_segment_array(test_img, list)
 
     for i in range(0, len(segments)):
         segments[i] = resize(segments[i], bw=False)
-    return segments
+    return locations, segments
 
     # show several examples
     fig, ax = pyplot.subplots(2, 2)

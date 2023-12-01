@@ -9,8 +9,8 @@ from keras.optimizers import Adam
 from keras.preprocessing import image
 
 batch_size = 64
-labels = np.array(['excessive_solder', 'insufficient_solder', 'normal',
-       'shifted_component', 'short'])
+labels = np.array(['excessive', 'insufficient', 'normal',
+       'shifted', 'short'])
 
 valtest_gen = image.ImageDataGenerator(rescale = 1./255,
                                        fill_mode='nearest')
@@ -22,7 +22,7 @@ model = load_model('model_classifier/resnetbase2.h5')
 def apply_model(images):
     """ Test the model"""
     pred_matrix = get_predictions(images)
-    get_predictions_one(pred_matrix)
+    return get_predictions_one(pred_matrix)
 
 
 def get_predictions(images):
