@@ -129,7 +129,25 @@ def auto_split_gray(image):
 
     return key_index
 
+def resize(img, bw=False):
+    """ Convert images to standard size"""
+    img = cv2.resize(img, (224,224), interpolation=cv2.INTER_NEAREST)
+    return cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
 
+    rows, cols, colors = img.shape
+    dim = max(rows, cols)
+
+    new_image = np.zeros((dim, dim, 3), dtype=np.uint8)
+
+    # determine upper-left corner
+    r_off = int((dim - rows)/2)
+    c_off = int((dim - cols)/2)
+
+    new_image[r_off:r_off+rows,c_off:c_off+cols,:] = img
+
+    if bw:
+        new_image = cv2.cvtColor(new_image, cv2.COLOR_BGR2GRAY)
+    return skimage.transform.resize(new_image, (150,150))
 
 def demo():
     """Driver program to perform segmentation only"""
@@ -169,6 +187,10 @@ def demo():
     #vis_image = skimage.color.label2rgb(super_test_img)
     #pyplot.imshow(new_img[0][])
     segments = build_segment_array(test_img, list)
+
+    for i in range(0, len(segments)):
+        segments[i] = resize(segments[i], bw=False)
+    return segments
 
     # show several examples
     fig, ax = pyplot.subplots(2, 2)

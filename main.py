@@ -2,12 +2,16 @@
 import matplotlib.pyplot as pyplot
 
 import eigenvalue_classifier.train as train
+import model_classifier.model as mc
 
 import joint_segmentation.segment as js
 
 
 # test segmentation
-js.demo()
+im_array = js.demo()
+classes = mc.apply_model(im_array)
+
+
 #js.test()
 
 
