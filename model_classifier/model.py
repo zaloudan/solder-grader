@@ -29,6 +29,9 @@ def get_predictions(images):
     """ Run images through trained model to get result,
     Note, other code, via Colab was used for training to access additional GPU power"""
     images = np.array(images)
+    if len(images) == 0:
+        return []
+
     test_data = valtest_gen.flow(images, batch_size=batch_size)
     predictions = np.array(model.predict(test_data))
     return predictions

@@ -14,7 +14,7 @@ class sError(Enum):
 def test():
     """ Test function callable from main"""
     # Get PCB image
-    image = cv2.imread("test_data/image (2).png")
+    image = cv2.imread("test_data/image (3).png")
 
     # Dummy List for debugging
     # Each element in the list will be a 3 element tuple
@@ -47,7 +47,7 @@ def apply_visualization(image, list_seg_class):
 
             # Draw bounding box
             # Sidenote: Ew, it's bgr not rgb
-            image = cv2.rectangle(image, (x, y), (x2, y2), (0,0,255), 1)
+            image = cv2.rectangle(image, (x, y), (x2, y2), (0,0,255), 2)
 
             #Assign label to bounding box
             cv2.putText(image, str(sError[seg[2]].value), (x, y-2), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0,0,255), 2)

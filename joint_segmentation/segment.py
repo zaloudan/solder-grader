@@ -49,8 +49,8 @@ def square_mask(mask, overscan, min_size):
     rows, cols = mask.shape
 
     for region in result:
-        pixels, blank1, blank2 = region.shape
-        if pixels > min_size:
+
+        if filter_regions(mask, region, min_size, 0.4):
             crop_elt = np.zeros(shape=(4), dtype=int)
 
             overscan_r = (overscan / 100) * (int(max(region[:, :, 1])) - int(min(region[:, :, 1])))
@@ -129,6 +129,23 @@ def auto_split_gray(image):
 
     return key_index
 
+def filter_regions(mask, region, min_size, threshold, max_ar=7):
+    """ Filter out regions with too few solder-like pixels"""
+    pixel_cnt, blank1, blank2 = region.shape
+    if pixel_cnt < min_size:
+        return False
+
+    pixels = mask[int(min(region[:, :, 1])):int(max(region[:, :, 1])),
+                  int(min(region[:, :, 0])):int(max(region[:, :, 0]))]
+    height, width = pixels.shape
+    if ((width/height) > max_ar or (height/width > max_ar)):
+        return False
+
+    if(np.sum(pixels)/(255*np.size(pixels)) < threshold):
+            return False
+
+    return True
+
 def resize(img, bw=False):
     """ Convert images to standard size"""
     img = cv2.resize(img, (224,224), interpolation=cv2.INTER_NEAREST)
@@ -192,11 +209,11 @@ def demo(test_img):
 
     res_img = test_img.shape
     res_img = cv2.bitwise_or(test_img, res_img, mask=mask)
-    #pyplot.imshow(res_img, cmap='hsv')
+    pyplot.imshow(res_img, cmap='hsv')
 
     # need to find the centers of the objects
     #new_img = square_mask(mask)
-    list = square_mask(mask, 15, 60)
+    list = square_mask(mask, 15, 70)
     #vis_image = skimage.color.label2rgb(super_test_img)
     #pyplot.imshow(new_img[0][])
     locations = format_locations(list)
