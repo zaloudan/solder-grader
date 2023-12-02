@@ -205,11 +205,7 @@ def demo(test_img):
     """Sep segmentation"""
     test_img = cv2.GaussianBlur(test_img, (5,5), 0)
     mask = gen_solder_mask(test_img, gray_floor=auto_split_gray(test_img))
-    pyplot.imshow(mask, cmap="gray")
-
-    res_img = test_img.shape
-    res_img = cv2.bitwise_or(test_img, res_img, mask=mask)
-    pyplot.imshow(res_img, cmap='hsv')
+    cv2.imwrite("segment_mask.png", mask)
 
     # need to find the centers of the objects
     #new_img = square_mask(mask)

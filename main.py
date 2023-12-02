@@ -11,7 +11,7 @@ import visualize_results.visualize as vis
 
 # test segmentation
 #vis.test()
-test_img = cv2.imread('test_data/image (2).png')
+test_img = cv2.imread('test_data/image (1).png')
 locations, im_array = js.demo(test_img)
 
 classes = mc.apply_model(im_array)
