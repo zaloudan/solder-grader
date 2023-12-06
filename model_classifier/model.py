@@ -1,11 +1,16 @@
-import numpy as np
-import cv2
+"""
+Module for running model
 
-# TODO:: update requirements pip
+Please see Jupyter Notebooks on dev_cnn for training which was done through Google Colab
+"""
+import os.path
+
+import numpy as np
+import urllib.request as req
+
 from tensorflow.keras.applications.resnet50 import ResNet50
 from tensorflow.keras.applications.vgg16 import VGG16
 from keras.models import Model, Sequential, load_model
-from keras.optimizers import Adam
 from keras.preprocessing import image
 
 batch_size = 64
@@ -15,12 +20,27 @@ labels = np.array(['excessive', 'insufficient', 'normal',
 valtest_gen = image.ImageDataGenerator(rescale = 1./255,
                                        fill_mode='nearest')
 
-# load in learned model, trained using Colab GPUs in Jupyter Notebook
+
+"""
+Load in learned model, trained using Colab GPUs 
+SEE Jupyter Notebook on dev_cnn branch
+
+Note: this must download from GDrive as it's >100MB
+Github imposes a file size limit
+"""
+if not(os.path.isfile('model_classifier/resnetbase2.h5')):
+    url = os.environ.get("MODEL_DOWNLOAD_URL")
+    req.urlretrieve(url, "model_classifier/resnetbase2.h5")
 model = load_model('model_classifier/resnetbase2.h5')
 
 
+"""
+Call THIS function to apply the model and
+
+Returns MOST probable classification
+"""
 def apply_model(images):
-    """ Test the model"""
+    """ Call to apply model to array of image segments"""
     pred_matrix = get_predictions(images)
     return get_predictions_one(pred_matrix)
 

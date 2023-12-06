@@ -1,20 +1,11 @@
 import matplotlib.pyplot as pyplot
 import cv2
-import numpy
 import numpy as np
 import skimage.color
 from skimage import segmentation
 
-# constants
+# key constants
 SAT_MAX = 40
-
-def test():
-    """Test function to show image"""
-    test_img = pyplot.imread('test_data/image (2).png')
-    gray_img = cv2.cvtColor(test_img, cv2.COLOR_BGR2GRAY)
-    pyplot.imshow(gray_img)
-    pyplot.show()
-
 
 def split_mask(mask):
     """
@@ -179,57 +170,49 @@ def format_locations(corners):
     return location
 
 
-def demo(test_img):
+def segment_image(test_img):
     """Driver program to perform segmentation only"""
 
-    #gray_img = cv2.cvtColor(test_img, cv2.COLOR_BGR2GRAY)
-    #gray_img = cv2.GaussianBlur(gray_img, (7,7), 0)
-    #pyplot.imshow(gray_img, cmap="gray")
-    #pyplot.show()
-
-    # histogram, blank = np.histogram(gray_img, bins=256)
-    #
-    #
-    # thresh, image = cv2.threshold(gray_img, 230, 255, cv2.THRESH_BINARY+cv2.THRESH_OTSU)
-    # pyplot.imshow(image, cmap="gray")
-    # pyplot.show()
-    """ Sep old code"""
-    # super_test_img = segmentation.slic(test_img, n_segments=2000, compactness=0.1, start_label=0)
-    # vis_image = skimage.color.label2rgb(super_test_img, test_img)
-    # pyplot.imshow(vis_image)
-    #
-    # cut = skimage.graph.rag_mean_color(test_img, super_test_img, mode='similarity')
-    # cut_applied = skimage.graph.cut_normalized(super_test_img, cut)
-    # pyplot.imshow(skimage.color.label2rgb(cut_applied, test_img))
-
-    """Sep segmentation"""
+    """Setup segmentation"""
     test_img = cv2.GaussianBlur(test_img, (5,5), 0)
     mask = gen_solder_mask(test_img, gray_floor=auto_split_gray(test_img))
     cv2.imwrite("segment_mask.png", mask)
 
-    # need to find the centers of the objects
-    #new_img = square_mask(mask)
     list = square_mask(mask, 15, 70)
-    #vis_image = skimage.color.label2rgb(super_test_img)
-    #pyplot.imshow(new_img[0][])
+
     locations = format_locations(list)
     segments = build_segment_array(test_img, list)
 
     for i in range(0, len(segments)):
         segments[i] = resize(segments[i], bw=False)
+
     return locations, segments
 
-    # show several examples
-    fig, ax = pyplot.subplots(2, 2)
+def test():
+    """EARLY Test functions/code to show images/help develop and debug the model
+        Depricated - not used in final version of the code """
+    test_img = pyplot.imread('test_data/image (2).png')
+    gray_img = cv2.cvtColor(test_img, cv2.COLOR_BGR2GRAY)
+    pyplot.imshow(gray_img)
+    pyplot.show()
 
-    ax[0][0].imshow(segments[0])
-    ax[0][1].imshow(segments[1])
-    ax[1][0].imshow(segments[2])
-    ax[1][1].imshow(segments[3])
+    gray_img = cv2.cvtColor(test_img, cv2.COLOR_BGR2GRAY)
+    gray_img = cv2.GaussianBlur(gray_img, (7,7), 0)
+    pyplot.imshow(gray_img, cmap="gray")
+    pyplot.show()
 
-    blank = 1
-    blank += 1
+    histogram, blank = np.histogram(gray_img, bins=256)
 
 
-# iterate through brightness, histogram method like OTSU
-# for alignment,
+    thresh, image = cv2.threshold(gray_img, 230, 255, cv2.THRESH_BINARY+cv2.THRESH_OTSU)
+    pyplot.imshow(image, cmap="gray")
+    pyplot.show()
+    """ Sep old code"""
+    super_test_img = segmentation.slic(test_img, n_segments=2000, compactness=0.1, start_label=0)
+    vis_image = skimage.color.label2rgb(super_test_img, test_img)
+    pyplot.imshow(vis_image)
+
+    cut = skimage.graph.rag_mean_color(test_img, super_test_img, mode='similarity')
+    cut_applied = skimage.graph.cut_normalized(super_test_img, cut)
+    pyplot.imshow(skimage.color.label2rgb(cut_applied, test_img))
+

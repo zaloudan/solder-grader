@@ -1,4 +1,5 @@
 import cv2
+import os
 from enum import Enum
 
 # Notes for integration:
@@ -12,9 +13,9 @@ class sError(Enum):
     short = 'S'
 
 def test():
-    """ Test function callable from main"""
+    """ Test function, callable from main"""
     # Get PCB image
-    image = cv2.imread("test_data/image (3).png")
+    image = cv2.imread("test_data/image (1).png")
 
     # Dummy List for debugging
     # Each element in the list will be a 3 element tuple
@@ -34,7 +35,9 @@ def list_filer(list_seg_class):
     return new_list
 
 def apply_visualization(image, list_seg_class):
-    """Apply visualization and save results """
+    """
+    Apply visualization and save results
+    """
     # Loop thorugh the list of segments and classfications
     for seg in list_seg_class:
         # Check that there is a classification
@@ -49,9 +52,10 @@ def apply_visualization(image, list_seg_class):
             # Sidenote: Ew, it's bgr not rgb
             image = cv2.rectangle(image, (x, y), (x2, y2), (0,0,255), 2)
 
-            #Assign label to bounding box
+            # Assign label to bounding box
             cv2.putText(image, str(sError[seg[2]].value), (x, y-2), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0,0,255), 2)
 
 
-    #Save image
-    cv2.imwrite("saved_img.jpg", image)
+    # Save resulting output image
+    img_path = os.environ.get("OUT_IMG_PATH")
+    cv2.imwrite(img_path, image)

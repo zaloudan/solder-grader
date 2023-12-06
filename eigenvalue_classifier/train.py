@@ -7,3 +7,6 @@ def test():
     test_img = pyplot.imread('training_data/excessive_solder/excessive (2).png')
     pyplot.imshow(test_img)
     pyplot.show()
+
+
+    """ See dev_eigenface for unused prototype implementation """
